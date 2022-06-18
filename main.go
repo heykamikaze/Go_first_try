@@ -1,43 +1,49 @@
 package main
 
-import ("fmt"
-        "database/sql"
-        _"github.com/go-sql-driver/mysql")
+import (
+  "fmt"
+  "net/http"
+  "html/template"
+)
 
 type User struct {
-  Name string `json:"name"`
-  Age uint16  `json:"age"`
+  Name string //char?
+  Age uint16 // >0
+  Trust_lvl int16 //can be less then 0
+  Avg_g, Hpnss float64
+  Skills [] string
 }
 
+func (u User)  getAllInfo() string {
+  return fmt.Sprintf("Username is %s. She is %d, her trust " +
+    "level is %d", u.Name, u.Age, u.Trust_lvl)
 
-func main()  {
+}
 
-  db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/golfing")//access to database fuck autocorrect WTF is golfing lol???
+func (u *User) setNewName(newName string)  {
+  u.Name = newName
+}
+
+func index(w http.ResponseWriter, r *http.Request)  {
+  // u1 := User{"Nancee", 25, 100, 4.1, 0, []string{"C", "Go", "Oil Painting"}}
+
+  t, err := template.ParseFiles("templates/header.html", "templates/footer.html", "templates/index.html")
+
   if err != nil {
-    panic(err)
+    fmt.Fprintf(w, err.Error())
+    return
   }
 
-  defer db.Close()
-
-//set the data
-  // insert, err := db.Query("INSERT INTO `users` (`name`, `age`) VALUES ('Nancee', 25)")
-  // if err != nil {
-  //   panic(err)
-  // }
-  // defer insert.Close()
-
-  res, err := db.Query("SELECT `name`, `age` FROM `users`")
-  if err != nil{
-    panic(err)
-  }
-
-  for res.Next() {
-    var user User
-    err = res.Scan(&user.Name, &user.Age) //scan if any
-    if err != nil{
-      panic(err)
-    }
-
-  fmt.Println(fmt.Sprintf("User: %s with age %d", user.Name, user.Age))
+  t.ExecuteTemplate(w, "index", nil)
 }
+
+func handleFunc()  {
+  http.HandleFunc("/", index)
+  http.ListenAndServe(":8080", nil)
+}
+
+
+func main(){
+
+  handleFunc()
 }
