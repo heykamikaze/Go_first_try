@@ -1,0 +1,16 @@
+{{ define "create" }}
+{{ template "header" }}
+  <main role="main" class="inner cover">
+    <h1 class="cover-heading"></h1>
+    <h1 class="cover-heading">Adding a joke</h1>
+  <form action="/save_article", method="post">
+    <input type="text" name="title" id="title" placeholder="Think twice if the joke is ok"
+    class="form-control"><br>
+    <textarea name="anons" id="anons" class="form-control" placeholder="Enter the circumstances of the joke
+    take place in"></textarea><br>
+    <textarea name="full_text" id="full_text" class="form-control" placeholder="Go for it: tell a joke"></textarea><br>
+    <button class="btn btn-warning">Add the Joke</button>
+  </form>
+</main>
+{{ template "footer" }}
+{{ end }}
