@@ -13,6 +13,7 @@ type Article struct {
   Title, Anons, Full_text string //can be less then 0
 }
 
+var posts = []Article{}
 
 type User struct {
   Name string //char?
@@ -89,23 +90,26 @@ func index(w http.ResponseWriter, r *http.Request)  {
     panic(err)
   }
 
+
+  posts = []Article{}
   for res.Next() {
     var post Article
     err = res.Scan(&post.Id, &post.Title, &post.Anons, &post.Full_text) //scan if any
     if err != nil{
-      panic(err)
-    }
+          panic(err)
+          }
 
-  fmt.Println(fmt.Sprintf("Post: %s with id %d", post.Title, post.Id))
-
-  t.ExecuteTemplate(w, "index", nil)
+  // fmt.Println(fmt.Sprintf("Post: %s with id %d", post.Title, post.Id))
+  // t.ExecuteTemplate(w, "index", nil)
+    posts = append(posts, post)
   }
+    t.ExecuteTemplate(w, "index", posts)
 }
 
 func handleFunc()  {
   http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
   http.HandleFunc("/", index)
-  http.HandleFunc("/create/", create)
+  http.HandleFunc("/create", create)
   http.HandleFunc("/save_article", save_article)
   http.ListenAndServe(":8080", nil)
 }
