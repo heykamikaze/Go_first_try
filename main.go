@@ -213,7 +213,7 @@ func check_pass(w http.ResponseWriter, r *http.Request) {
 
     Passcode := r.FormValue("passcode")
 
-    if Passcode == "memmove" || Passcode == "guestpass" {
+    if Passcode == "" || Passcode == "" {
       http.Redirect(w, r, "/create/", http.StatusSeeOther)
     } else {
         fmt.Fprint(w, "Раньше говорили я бы с ним в разведку не пошел, я б с тобой в тур не поехал, ты проверку не прошел")
