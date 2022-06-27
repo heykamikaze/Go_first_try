@@ -14,8 +14,13 @@ type Article struct {
   Title, Anons, Full_text string //can be less then 0
 }
 
+type Pass struct {
+  Passcode string //can be less then 0
+}
+
 var posts = []Article{}
 var showPost Article
+var passcodes = []Pass{}
 
 type User struct {
   Name string //char?
@@ -36,13 +41,30 @@ func (u *User) setNewName(newName string)  {
 }
 
 func create(w http.ResponseWriter, r *http.Request)  {
-  t, err := template.ParseFiles("templates/create.html", "templates/header.html",
+  t, err := template.ParseFiles("templates/check_pass.html", "templates/header.html",
   "templates/footer.html")
   if err != nil {
     fmt.Fprintf(w, err.Error())
   }
 
-  t.ExecuteTemplate(w, "create", nil)
+  t.ExecuteTemplate(w, "check_pass", nil)
+
+    inputPassword2 := r.FormValue("inputPassword2")
+
+    if inputPassword2 == "memmove" || inputPassword2 == "guestpass" {
+      http.Redirect(w, r, "/create/", http.StatusSeeOther)
+      t.ExecuteTemplate(w, "create", nil)
+    } else {
+        // fmt.Fprint(w, "Раньше говорили я бы с ним в разведку не пошел, я б с тобой в тур не поехал, ты проверку не прошел")
+  }
+
+  // t, err := template.ParseFiles("templates/create.html", "templates/header.html",
+  // "templates/footer.html")
+  // if err != nil {
+  //   fmt.Fprintf(w, err.Error())
+  // }
+  //
+  // t.ExecuteTemplate(w, "create", nil)
 }
 
 func save_article(w http.ResponseWriter, r *http.Request)  {
@@ -116,6 +138,42 @@ func index(w http.ResponseWriter, r *http.Request)  {
     return
   }
 
+  // db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/golfing")
+  // if err != nil {
+  //   panic(err)
+  // }
+  //
+  // defer db.Close()
+  //
+  // res, err := db.Query("SELECT * FROM `articles`")
+  // if err != nil{
+  //   panic(err)
+  // }
+  //
+  //
+  // posts = []Article{}
+  // for res.Next() {
+  //   var post Article
+  //   err = res.Scan(&post.Id, &post.Title, &post.Anons, &post.Full_text) //scan if any
+  //   if err != nil{
+  //         panic(err)
+  //         }
+  //
+  // // fmt.Println(fmt.Sprintf("Post: %s with id %d", post.Title, post.Id))
+  t.ExecuteTemplate(w, "index", nil)
+  //   posts = append(posts, post)
+  // }
+    // t.ExecuteTemplate(w, "index", posts)
+}
+
+func display_posts(w http.ResponseWriter, r *http.Request)  {
+  t, err := template.ParseFiles("templates/header.html", "templates/footer.html", "templates/dachi_archives.html")
+
+  if err != nil {
+    fmt.Fprintf(w, err.Error())
+    return
+  }
+
   db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:8889)/golfing")
   if err != nil {
     panic(err)
@@ -137,11 +195,29 @@ func index(w http.ResponseWriter, r *http.Request)  {
           panic(err)
           }
 
-  // fmt.Println(fmt.Sprintf("Post: %s with id %d", post.Title, post.Id))
-  // t.ExecuteTemplate(w, "index", nil)
+  // // fmt.Println(fmt.Sprintf("Post: %s with id %d", post.Title, post.Id))
+  // t.ExecuteTemplate(w, "dachi_archives", nil)
     posts = append(posts, post)
   }
-    t.ExecuteTemplate(w, "index", posts)
+    t.ExecuteTemplate(w, "dachi_archives", posts)
+}
+
+func check_pass(w http.ResponseWriter, r *http.Request) {
+  t, err := template.ParseFiles("templates/check_pass.html", "templates/header.html",
+  "templates/footer.html")
+  if err != nil {
+    fmt.Fprintf(w, err.Error())
+  }
+
+  t.ExecuteTemplate(w, "check_pass", nil)
+
+    Passcode := r.FormValue("passcode")
+
+    if Passcode == "memmove" || Passcode == "guestpass" {
+      http.Redirect(w, r, "/create/", http.StatusSeeOther)
+    } else {
+        fmt.Fprint(w, "Раньше говорили я бы с ним в разведку не пошел, я б с тобой в тур не поехал, ты проверку не прошел")
+  }
 }
 
 func handleFunc()  {
@@ -151,7 +227,8 @@ func handleFunc()  {
   rtr.HandleFunc("/create/", create).Methods("GET")
   rtr.HandleFunc("/save_article", save_article).Methods("POST")
   rtr.HandleFunc("/post/{id:[0-9]+}", show_post).Methods("GET")
-
+  // rtr.HandleFunc("/check_pass/", check_pass).Methods("GET")
+  rtr.HandleFunc("/display/", display_posts).Methods("GET")
   http.Handle("/", rtr)
   http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
   http.ListenAndServe(":8080", nil)
