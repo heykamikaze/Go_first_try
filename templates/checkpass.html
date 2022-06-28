@@ -1,14 +1,14 @@
-{{ define "check_pass" }}
+{{ define "checkpass" }}
 {{ template "header" }}
   <main role="main" class="inner cover">
-    <!-- <h1 class="cover-heading"></h1>
+    <h1 class="cover-heading"></h1>
     <h1 class="cover-heading">Не доверяю никому, кроме своей команды</h1>
-  <form action="/check_pass/", method="get">
+  <form action="/pass_correct", method="post">
     <input type="text" name="Passcode" id="Passcode" placeholder="Prove you deserve to be trusted"
     class="form-control"><br>
     <button class="btn btn-warning">Check</button>
-  </form> -->
-  <form class="form-inline">
+  </form>
+  <!-- <form class="form-inline">
   <div class="form-group mb-2">
     <label for="staticEmail2" class="sr-only">Email</label>
     <input type="text" readonly class="form-control-plaintext" id="staticEmail2" value="email@example.com">
@@ -18,7 +18,8 @@
     <input type="password" class="form-control" id="inputPassword2" placeholder="Password">
   </div>
   <button type="submit" class="btn btn-primary mb-2">Confirm identity</button>
-</form>
+</form> -->
 </main>
+
 {{ template "footer" }}
 {{ end }}

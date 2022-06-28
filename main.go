@@ -3,11 +3,16 @@ package main
 import (
   "fmt"
   "net/http"
+  // "log"
   "html/template"
   "github.com/gorilla/mux"
   "database/sql"
   _"github.com/go-sql-driver/mysql"
+  "golang.org/x/crypto/bcrypt"
 )
+
+var db *sql.DB
+var err error
 
 type Article struct {
   Id uint16 // >0
@@ -15,12 +20,15 @@ type Article struct {
 }
 
 type Pass struct {
-  Passcode string //can be less then 0
+  Login, Password, StorageAccess string
+  Success bool
 }
 
 var posts = []Article{}
 var showPost Article
-var passcodes = []Pass{}
+// var (
+//   tmpl = template.Must(template.ParseFiles("forms.html"))
+// )
 
 type User struct {
   Name string //char?
@@ -29,6 +37,77 @@ type User struct {
   Avg_g, Hpnss float64
   Skills [] string
 }
+
+func signupPage(res http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		http.ServeFile(res, req, "signup.html")
+		return
+	}
+
+  	username := req.FormValue("username")
+  	password := req.FormValue("password")
+    var user string
+
+    err := db.QueryRow("SELECT username FROM users WHERE username=?", username).Scan(&user)
+
+    switch {
+    case err == sql.ErrNoRows:
+      hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+      if err != nil {
+        http.Error(res, "Server error, unable to create your account.", 500)
+        return
+      }
+      _, err = db.Exec("INSERT INTO users(username, password) VALUES(?, ?)", username, hashedPassword)
+      if err != nil {
+        http.Error(res, "Server error, unable to create your account.", 500)
+        return
+      }
+      res.Write([]byte("User created!"))
+  		return
+  	case err != nil:
+  		http.Error(res, "Server error, unable to create your account.", 500)
+  		return
+  	default:
+  		http.Redirect(res, req, "/", 301)
+  	}
+  }
+
+
+  func loginPage(res http.ResponseWriter, req *http.Request) {
+  	if req.Method != "POST" {
+  		http.ServeFile(res, req, "login.html")
+  		return
+  	}
+
+  	username := req.FormValue("username")
+  	password := req.FormValue("password")
+
+  	var databaseUsername string
+  	var databasePassword string
+
+  	err := db.QueryRow("SELECT username, password FROM users WHERE username=?", username).Scan(&databaseUsername, &databasePassword)
+
+  	if err != nil {
+  		http.Redirect(res, req, "/login", 301)
+  		return
+  	}
+
+  	err = bcrypt.CompareHashAndPassword([]byte(databasePassword), []byte(password))
+  	if err != nil {
+  		http.Redirect(res, req, "/login", 301)
+  		return
+  	}
+
+  	res.Write([]byte("Hello" + databaseUsername))
+
+  }
+// func login(w http.ResponseWriter, r *http.Request)  {
+//   data := Pass {
+//     Login: r.FormValue("login")
+//     Password: r.FormValue("password")
+//   }
+//   tmpl.ExecuteTemplate(w, "forms.html", nil)
+// }
 
 func (u User)  getAllInfo() string {
   return fmt.Sprintf("Username is %s. She is %d, her trust " +
@@ -41,30 +120,30 @@ func (u *User) setNewName(newName string)  {
 }
 
 func create(w http.ResponseWriter, r *http.Request)  {
-  t, err := template.ParseFiles("templates/check_pass.html", "templates/header.html",
-  "templates/footer.html")
-  if err != nil {
-    fmt.Fprintf(w, err.Error())
-  }
-
-  t.ExecuteTemplate(w, "check_pass", nil)
-
-    inputPassword2 := r.FormValue("inputPassword2")
-
-    if inputPassword2 == "memmove" || inputPassword2 == "guestpass" {
-      http.Redirect(w, r, "/create/", http.StatusSeeOther)
-      t.ExecuteTemplate(w, "create", nil)
-    } else {
-        // fmt.Fprint(w, "Раньше говорили я бы с ним в разведку не пошел, я б с тобой в тур не поехал, ты проверку не прошел")
-  }
-
-  // t, err := template.ParseFiles("templates/create.html", "templates/header.html",
+  // t, err := template.ParseFiles("templates/check_pass.html", "templates/header.html",
   // "templates/footer.html")
   // if err != nil {
   //   fmt.Fprintf(w, err.Error())
   // }
   //
-  // t.ExecuteTemplate(w, "create", nil)
+  // t.ExecuteTemplate(w, "check_pass", nil)
+  //
+  //   inputPassword2 := r.FormValue("inputPassword2")
+  //
+  //   if inputPassword2 == "memmove" || inputPassword2 == "guestpass" {
+  //     http.Redirect(w, r, "/create/", http.StatusSeeOther)
+  //     t.ExecuteTemplate(w, "create", nil)
+  //   } else {
+  //       // fmt.Fprint(w, "Раньше говорили я бы с ним в разведку не пошел, я б с тобой в тур не поехал, ты проверку не прошел")
+  // }
+
+  t, err := template.ParseFiles("templates/create.html", "templates/header.html",
+  "templates/footer.html")
+  if err != nil {
+    fmt.Fprintf(w, err.Error())
+  }
+
+  t.ExecuteTemplate(w, "create", nil)
 }
 
 func save_article(w http.ResponseWriter, r *http.Request)  {
@@ -203,31 +282,48 @@ func display_posts(w http.ResponseWriter, r *http.Request)  {
 }
 
 func check_pass(w http.ResponseWriter, r *http.Request) {
-  t, err := template.ParseFiles("templates/check_pass.html", "templates/header.html",
+  t, err := template.ParseFiles("templates/checkpass.html", "templates/header.html",
   "templates/footer.html")
   if err != nil {
     fmt.Fprintf(w, err.Error())
   }
 
-  t.ExecuteTemplate(w, "check_pass", nil)
+  t.ExecuteTemplate(w, "checkpass", nil)
+  // http.Redirect(res, req, "/login", 301)
+    // Passcode := r.FormValue("Passcode")
+  //
+  //   if Passcode == "memmove" || Passcode == "guestpass" {
+  //     http.Redirect(w, r, "/create/", http.StatusSeeOther)
+  //   } else {
+  //       fmt.Fprint(w, "Раньше говорили я бы с ним в разведку не пошел, я б с тобой в тур не поехал, ты проверку не прошел")
+  // // }
+  // if Passcode != "memmove" {
+  //   fmt.Fprint(w, "Enter correct key")
+  // } else {
+  //       http.Redirect(w, r, "/create", http.StatusSeeOther)
+  //     }
+}
 
-    Passcode := r.FormValue("passcode")
+func pass_correct(w http.ResponseWriter, r *http.Request)  {
+    Passcode := r.FormValue("Passcode")
 
-    if Passcode == "" || Passcode == "" {
-      http.Redirect(w, r, "/create/", http.StatusSeeOther)
+    if Passcode == "memmove" {
+      http.Redirect(w, r, "/create", http.StatusSeeOther)
     } else {
-        fmt.Fprint(w, "Раньше говорили я бы с ним в разведку не пошел, я б с тобой в тур не поехал, ты проверку не прошел")
+      fmt.Fprint(w, "Enter correct key")
   }
 }
+
 
 func handleFunc()  {
 
   rtr := mux.NewRouter()
   rtr.HandleFunc("/", index).Methods("GET")
-  rtr.HandleFunc("/create/", create).Methods("GET")
+  rtr.HandleFunc("/checkpass/", check_pass).Methods("GET")
+  rtr.HandleFunc("/pass_correct", pass_correct).Methods("POST")
+  rtr.HandleFunc("/create", create).Methods("GET")
   rtr.HandleFunc("/save_article", save_article).Methods("POST")
   rtr.HandleFunc("/post/{id:[0-9]+}", show_post).Methods("GET")
-  // rtr.HandleFunc("/check_pass/", check_pass).Methods("GET")
   rtr.HandleFunc("/display/", display_posts).Methods("GET")
   http.Handle("/", rtr)
   http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))

@@ -1,0 +1,29 @@
+{{ define "forms" }}
+{{ template "header" }}
+<body>
+    <div class="container">
+      {{ if .Success}}
+      <div class="row">
+        <div class="col col-md2">
+            {{ .StorageAccess }}
+        </div>
+      </div>
+      {{else}}
+      <div class="col">
+        <div class="row justify-content-md-center">
+          <h1>YOU NEED TO PROVE YOU TRUSTED PERSON</h1>
+        </div>
+        <div class="col-mid-auto">
+        <form method="POST">
+            <div class="form-group">
+              <label for="exampleEmail">LDAP login</label>
+              <input type="login" name="login" class="form-control">
+              <label for="examplePassword">Password</label>
+              <input type="password" name="password" class="form-control">
+              </div>
+
+        </form>
+    </body>
+    
+{{ template "footer" }}
+{{ end }}
