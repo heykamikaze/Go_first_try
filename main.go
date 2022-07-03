@@ -304,13 +304,24 @@ func check_pass(w http.ResponseWriter, r *http.Request) {
   //     }
 }
 
+func passfail(w http.ResponseWriter, r *http.Request)  {
+
+  t, err := template.ParseFiles("templates/passfail.html", "templates/header.html",
+  "templates/footer.html")
+  if err != nil {
+    fmt.Fprintf(w, err.Error())
+  }
+
+  t.ExecuteTemplate(w, "passfail", nil)
+}
+
 func pass_correct(w http.ResponseWriter, r *http.Request)  {
     Passcode := r.FormValue("Passcode")
 
     if Passcode == "memmove" {
       http.Redirect(w, r, "/create", http.StatusSeeOther)
     } else {
-      fmt.Fprint(w, "Enter correct key")
+      http.Redirect(w, r, "/passfail", http.StatusSeeOther)
   }
 }
 
@@ -322,6 +333,7 @@ func handleFunc()  {
   rtr.HandleFunc("/checkpass/", check_pass).Methods("GET")
   rtr.HandleFunc("/pass_correct", pass_correct).Methods("POST")
   rtr.HandleFunc("/create", create).Methods("GET")
+  rtr.HandleFunc("/passfail", passfail).Methods("GET")
   rtr.HandleFunc("/save_article", save_article).Methods("POST")
   rtr.HandleFunc("/post/{id:[0-9]+}", show_post).Methods("GET")
   rtr.HandleFunc("/display/", display_posts).Methods("GET")
