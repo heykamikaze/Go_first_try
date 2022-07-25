@@ -137,8 +137,8 @@ func create(w http.ResponseWriter, r *http.Request)  {
   //       // fmt.Fprint(w, "Раньше говорили я бы с ним в разведку не пошел, я б с тобой в тур не поехал, ты проверку не прошел")
   // }
 
-  t, err := template.ParseFiles("templates/create.html", "templates/header.html",
-  "templates/footer.html")
+  t, err := template.ParseFiles("create.html", "header.html",
+  "footer.html")
   if err != nil {
     fmt.Fprintf(w, err.Error())
   }
@@ -175,7 +175,7 @@ func save_article(w http.ResponseWriter, r *http.Request)  {
 func show_post(w http.ResponseWriter, r *http.Request)  {
   vars := mux.Vars(r)
 
-  t, err := template.ParseFiles("templates/header.html", "templates/footer.html", "templates/show.html")
+  t, err := template.ParseFiles("header.html", "footer.html", "show.html")
 
   if err != nil {
     fmt.Fprintf(w, err.Error())
@@ -210,7 +210,7 @@ func show_post(w http.ResponseWriter, r *http.Request)  {
 
 func index(w http.ResponseWriter, r *http.Request)  {
 
-  t, err := template.ParseFiles("templates/header.html", "templates/footer.html", "templates/index.html")
+  t, err := template.ParseFiles("header.html", "footer.html", "index.html")
 
   if err != nil {
     fmt.Fprintf(w, err.Error())
@@ -246,7 +246,7 @@ func index(w http.ResponseWriter, r *http.Request)  {
 }
 
 func display_posts(w http.ResponseWriter, r *http.Request)  {
-  t, err := template.ParseFiles("templates/header.html", "templates/footer.html", "templates/dachi_archives.html")
+  t, err := template.ParseFiles("header.html", "footer.html", "dachi_archives.html")
 
   if err != nil {
     fmt.Fprintf(w, err.Error())
@@ -282,8 +282,8 @@ func display_posts(w http.ResponseWriter, r *http.Request)  {
 }
 
 func check_pass(w http.ResponseWriter, r *http.Request) {
-  t, err := template.ParseFiles("templates/checkpass.html", "templates/header.html",
-  "templates/footer.html")
+  t, err := template.ParseFiles("checkpass.html", "header.html",
+  "footer.html")
   if err != nil {
     fmt.Fprintf(w, err.Error())
   }
@@ -306,8 +306,8 @@ func check_pass(w http.ResponseWriter, r *http.Request) {
 
 func passfail(w http.ResponseWriter, r *http.Request)  {
 
-  t, err := template.ParseFiles("templates/passfail.html", "templates/header.html",
-  "templates/footer.html")
+  t, err := template.ParseFiles("passfail.html", "header.html",
+  "footer.html")
   if err != nil {
     fmt.Fprintf(w, err.Error())
   }
